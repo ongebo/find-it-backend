@@ -1,4 +1,5 @@
 from ..models.user import User, db
+from werkzeug.security import generate_password_hash
 
 
 class Persister:
@@ -11,7 +12,9 @@ class Persister:
             username=self.json_data['username'],
             phone_number=self.json_data['phone_number'],
             email=self.json_data['email'],
-            password=self.json_data['password']
+            password=generate_password_hash(
+                self.json_data['password'], method='sha256'
+            )
         )
         db.session.add(user)
         db.session.commit()
