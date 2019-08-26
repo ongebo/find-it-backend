@@ -8,3 +8,6 @@ env/
 .env
 
 __pycache__
+
+# pytest coverage report
+.coverage
