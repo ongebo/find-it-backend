@@ -18,9 +18,21 @@ class RequestValidator:
         if self.not_all_required_fields_present_as_strings():
             return True
         self.ensure_no_redundant_fields_in_request()
-        self.validate_username()
-        self.validate_phone_number()
-        self.validate_email()
+        self.validate_field(
+            'username', r'[a-zA-Z]{3,30}( [a-zA-Z]{3,30})*$',
+            (
+                'A username can only contain letters. First, middle, and last names are '
+                'separated by single spaces, each name containing atleast three characters.'
+            )
+        )
+        self.validate_field(
+            'phone_number', r'\+[0-9]{1,3}-[0-9]{3}-[0-9]{6}$',
+            'Specify phone number in this format: +xxx-xxx-xxxxxx'
+        )
+        self.validate_field(
+            'email', r'[a-zA-Z0-9]+@[a-zA-Z]+\.[a-zA-Z]{2,3}((\.[a-zA-Z]{2,3})+)?$',
+            'Invalid email address!'
+        )
         self.validate_password()
         return True if self.errors else False
 
@@ -38,36 +50,21 @@ class RequestValidator:
             if key not in self.required_fields:
                 self.errors['redundancy'] = 'Excess data specified in request!'
 
-    def validate_username(self):
-        name = self.json_data['username'].strip()
-        name_pattern = re.compile(r'[a-zA-Z]{3,30}( [a-zA-Z]{3,30})*$')
-        if not name_pattern.match(name):
-            self.errors['username'] = (
-                'A username can only contain letters. First, middle, and last names are '
-                'separated by single spaces, each name containing atleast three characters.'
-            )
+    def validate_field(self, field, regex, error_message):
+        field_value = self.json_data[field].strip()
+        field_pattern = re.compile(regex)
+        if not field_pattern.match(field_value):
+            self.errors[field] = error_message
             return
-        if User.query.filter_by(username=name).first():
-            self.errors['username'] = f'{name} already exists!'
+        self.ensure_field_value_not_in_database(field, field_value)
 
-    def validate_phone_number(self):
-        number = self.json_data['phone_number'].strip()
-        number_pattern = re.compile(r'\+[0-9]{1,3}-[0-9]{3}-[0-9]{6}$')
-        if not number_pattern.match(number):
-            self.errors['phone_number'] = 'Specify phone number in this format: +xxx-xxx-xxxxxx'
-            return
-        if User.query.filter_by(phone_number=number).first():
-            self.errors['phone_number'] = f'{number} is already taken by another user!'
-
-    def validate_email(self):
-        email = self.json_data['email'].strip()
-        email_pattern = re.compile(
-            r'[a-zA-Z0-9]+@[a-zA-Z]+\.[a-zA-Z]{2,3}((\.[a-zA-Z]{2,3})+)?$')
-        if not email_pattern.match(email):
-            self.errors['email'] = 'Invalid email address!'
-            return
-        if User.query.filter_by(email=email).first():
-            self.errors['email'] = f'{email} is already taken by another user!'
+    def ensure_field_value_not_in_database(self, field, field_value):
+        if field == 'username' and User.query.filter_by(username=field_value).first():
+            self.errors['username'] = f'{field_value} already exists!'
+        elif field == 'phone_number' and User.query.filter_by(phone_number=field_value).first():
+            self.errors['phone_number'] = f'{field_value} is already taken by another user!'
+        elif field == 'email' and User.query.filter_by(email=field_value).first():
+            self.errors['email'] = f'{field_value} is already taken by another user!'
 
     def validate_password(self):
         password = self.json_data['password'].strip()
