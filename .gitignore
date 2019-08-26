@@ -4,4 +4,7 @@ env/
 # VSCode files
 .vscode/
 
+# environment variables
+.env
+
 __pycache__
