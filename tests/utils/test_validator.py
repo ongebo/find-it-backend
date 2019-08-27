@@ -1,21 +1,21 @@
-from app.utils.validator import RequestValidator
+from app.utils.validator import SignupValidator
 from .conftest import Request
 
 
 def test_validator_returns_false_if_request_not_json():
-    validator = RequestValidator(Request('non-JSON string'))
+    validator = SignupValidator(Request('non-JSON string'))
     assert validator.request_invalid()
     assert validator.errors['error'] == 'Request not specified in JSON format!'
 
 
 def test_validator_returns_false_if_redundant_fields_in_request_with_all_required_string_fields(redundant_request):
-    validator = RequestValidator(redundant_request)
+    validator = SignupValidator(redundant_request)
     assert validator.request_invalid()
     assert validator.errors['redundancy'] == 'Excess data specified in request!'
 
 
 def test_validator_returns_false_given_invalid_required_fields(invalid_fields_request):
-    validator = RequestValidator(invalid_fields_request)
+    validator = SignupValidator(invalid_fields_request)
     assert validator.request_invalid()
     assert validator.errors['username'] == (
         'A username can only contain letters. First, middle, and last names are '

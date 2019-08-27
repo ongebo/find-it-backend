@@ -1,12 +1,12 @@
 from flask import request, jsonify
 from .. import app
-from ..utils.validator import RequestValidator
+from ..utils.validator import SignupValidator
 from ..utils.persister import Persister
 
 
 @app.route('/users', methods=['POST'])
 def register_user():
-    validator = RequestValidator(request)
+    validator = SignupValidator(request)
     if validator.request_invalid():
         return jsonify({'errors': validator.errors}), 400
     persister = Persister(request.get_json())

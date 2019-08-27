@@ -2,7 +2,7 @@ import re
 from ..models.user import User
 
 
-class RequestValidator:
+class SignupValidator:
     def __init__(self, request):
         self.json_data = request.get_json()
         self.required_fields = {
