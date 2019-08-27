@@ -1,5 +1,6 @@
 from flask import request, jsonify
-from ..utils.validator import app, RequestValidator
+from .. import app
+from ..utils.validator import RequestValidator
 from ..utils.persister import Persister
 
 

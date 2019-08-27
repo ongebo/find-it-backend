@@ -1,11 +1,4 @@
-import os
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-
-
-app = Flask(__name__)
-app.config.from_object('app.models.config')  # load configuration from 'config.py'
-db = SQLAlchemy(app)
+from .. import db
 
 
 class User(db.Model):

@@ -1,5 +1,5 @@
 import re
-from ..models.user import app, User
+from ..models.user import User
 
 
 class RequestValidator:
