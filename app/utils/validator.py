@@ -1,5 +1,6 @@
 import re
 from ..models.user import User
+from werkzeug.security import check_password_hash
 
 
 class SignupValidator:
@@ -79,3 +80,49 @@ class SignupValidator:
                 'Password must contain atleast one lowercase letter, one uppercase letter,'
                 ' a digit and be 6 to 12 characters long!'
             )
+
+
+class LoginValidator:
+    def __init__(self, request):
+        self.json_data = request.get_json()
+        self.required_fields = {'email': 'Email', 'password': 'Password'}
+        self.errors = {}
+
+    def request_invalid(self):
+        if not self.json_data:
+            self.errors['format'] = 'Request not specified in JSON format!'
+            return True
+        if self.redundant_fields_in_request():
+            return True
+        if self.not_all_required_fields_present():
+            return True
+        if self.not_all_required_fields_are_strings():
+            return True
+        self.ensure_email_and_password_correct()
+        return True if self.errors else False
+
+    def redundant_fields_in_request(self):
+        for field in self.json_data:
+            if field not in self.required_fields:
+                self.errors[field] = f'"{field}" not required!'
+        return True if self.errors else False
+
+    def not_all_required_fields_present(self):
+        for k, v in self.required_fields.items():
+            if k not in self.json_data:
+                self.errors[k] = f'{v} not specified!'
+        return True if self.errors else False
+
+    def not_all_required_fields_are_strings(self):
+        for k, v in self.required_fields.items():
+            if not isinstance(self.json_data[k], str):
+                self.errors[k] = f'{v} must be a string!'
+        return True if self.errors else False
+
+    def ensure_email_and_password_correct(self):
+        user = User.query.filter_by(email=self.json_data['email']).first()
+        if not user:
+            self.errors['email'] = 'Incorrect email address!'
+            return
+        if not check_password_hash(user.password, self.json_data['password']):
+            self.errors['password'] = 'Incorrect password!'
