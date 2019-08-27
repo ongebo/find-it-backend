@@ -5,9 +5,9 @@ import os
 def setup_tables():
     if len(sys.argv) == 2 and sys.argv[1] == 'testdb':
         print('Setting up test database...')
-        os.environ['DATABASE_URL'] = os.getenv('TEST_DATABASE', '')
+        os.environ['FINDIT_PROJECT_MODE'] = 'test_mode'
 
-    # import db only after setting os.environ['DATABASE_URL'] above
+    # import db only after setting os.environ['FINDIT_PROJECT_MODE'] above
     from app.models.user import db
     db.create_all()
 

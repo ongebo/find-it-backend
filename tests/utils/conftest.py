@@ -13,7 +13,7 @@ class Request:
 
 
 def pytest_configure(config):
-    os.environ['DATABASE_URL'] = os.getenv('TEST_DATABASE')
+    os.environ['FINDIT_PROJECT_MODE'] = 'test_mode'
 
 
 @pytest.fixture

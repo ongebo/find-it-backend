@@ -8,7 +8,7 @@ services:
   - postgresql
 
 env:
-  - TEST_DATABASE=postgres://postgres:@localhost:5432/testdb
+  - FINDIT_PROJECT_MODE=test_mode TEST_DATABASE_URL=postgres://postgres:@localhost:5432/testdb
 
 before_script:
   - psql -c "CREATE DATABASE testdb;" -U postgres
