@@ -2,7 +2,7 @@ from ..models.user import User, db
 from werkzeug.security import generate_password_hash
 
 
-class Persister:
+class UserPersister:
     def __init__(self, json_data):
         self.json_data = json_data
 

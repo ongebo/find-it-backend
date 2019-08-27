@@ -1,4 +1,4 @@
-from app.utils.persister import db, Persister
+from app.utils.persister import db, UserPersister
 from app.models.user import User
 
 
@@ -9,7 +9,7 @@ def test_persister_saves_user_to_database_and_returns_saved_information():
         'email': 'johndoe@gmail.com',
         'password': 'JohnDoe2019'
     }
-    persisted_data = Persister(user).persist_user()
+    persisted_data = UserPersister(user).persist_user()
 
     # ensure user was saved to database
     saved_user = User.query.filter_by(
