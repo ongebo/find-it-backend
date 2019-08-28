@@ -8,7 +8,7 @@ def setup_tables():
         os.environ['FINDIT_PROJECT_MODE'] = 'test_mode'
 
     # import db only after setting os.environ['FINDIT_PROJECT_MODE'] above
-    from app.models.user import db
+    from app.models import db
     db.create_all()
 
 
