@@ -48,7 +48,7 @@ def test_login_validator_returns_invalid_given_incorrect_password():
         'email': 'johndoe@gmail.com',
         'password': 'JohnDoe2019'
     }
-    UserPersister(user).persist_user()
+    UserPersister(user).persist()
 
     # attempt to login with wrong password
     invalid_login_password = Request({

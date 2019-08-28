@@ -2,13 +2,38 @@ from ..models import User, LostAndFoundItem, db
 from werkzeug.security import generate_password_hash
 
 
-class UserPersister:
+class Persister:
     def __init__(self, json_data):
         self.json_data = json_data
 
-    def persist_user(self):
+    def persist(self):
         self.strip_spaces()
-        user = User(
+        model_instance = self.get_model_instance()
+        db.session.add(model_instance)
+        db.session.commit()
+        return self.get_persisted_data_as_json()
+
+    def strip_spaces(self):
+        for k, v in self.json_data.items():
+            self.json_data[k] = v.strip()
+
+    # override this method in a subclass to create a model instance
+    # to be persisted to the database
+    def get_model_instance(self):
+        pass
+
+    # override this method in a subclass to retrieve data persisted
+    # persisted to database
+    def get_persisted_data_as_json(self):
+        pass
+
+
+class UserPersister(Persister):
+    def __init__(self, json_data):
+        super().__init__(json_data)
+
+    def get_model_instance(self):
+        return User(
             username=self.json_data['username'],
             phone_number=self.json_data['phone_number'],
             email=self.json_data['email'],
@@ -16,52 +41,36 @@ class UserPersister:
                 self.json_data['password'], method='sha256'
             )
         )
-        db.session.add(user)
-        db.session.commit()
-        return self.get_created_record_as_json()
 
-    def strip_spaces(self):
-        for k, v in self.json_data.items():
-            self.json_data[k] = v.strip()
-
-    def get_created_record_as_json(self):
-        created_record = User.query.filter_by(
+    def get_persisted_data_as_json(self):
+        registered_user = User.query.filter_by(
             username=self.json_data['username'],
             email=self.json_data['email']
         ).first()
-        json_format = {
-            'id': created_record.id,
-            'username': created_record.username,
-            'phone_number': created_record.phone_number,
-            'email': created_record.email
+        return {
+            'id': registered_user.id,
+            'username': registered_user.username,
+            'phone_number': registered_user.phone_number,
+            'email': registered_user.email
         }
-        return json_format
 
 
-class LostAndFoundItemPersister:
-    def __init__(self, json_data):
-        self.json_data = json_data
-
-    def persist_item(self, reporter_email):
-        self.strip_spaces()
+class LostAndFoundItemPersister(Persister):
+    def __init__(self, json_data, reporter_email):
+        super().__init__(json_data)
         self.reporting_user = User.query.filter_by(
             email=reporter_email
         ).first()
-        lost_and_found_item = LostAndFoundItem(
+
+    def get_model_instance(self):
+        return LostAndFoundItem(
             name=self.json_data['item_name'],
             description=self.json_data['description'],
             image_path=self.json_data['image_url'],
             reporter_id=self.reporting_user.id
         )
-        db.session.add(lost_and_found_item)
-        db.session.commit()
-        return self.get_reported_item_as_json()
 
-    def strip_spaces(self):
-        for k, v in self.json_data.items():
-            self.json_data[k] = v.strip()
-
-    def get_reported_item_as_json(self):
+    def get_persisted_data_as_json(self):
         reported_item = LostAndFoundItem.query.filter_by(
             name=self.json_data['item_name'],
             description=self.json_data['description'],

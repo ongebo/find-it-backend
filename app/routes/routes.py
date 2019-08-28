@@ -15,7 +15,7 @@ def register_user():
     if validator.request_invalid():
         return jsonify({'errors': validator.errors}), 400
     persister = UserPersister(request.get_json())
-    created_data = persister.persist_user()
+    created_data = persister.persist()
     return jsonify(created_data), 201
 
 
@@ -37,8 +37,10 @@ def report_lost_and_found_item():
     validator = LostAndFoundItemValidator(request)
     if validator.request_invalid():
         return jsonify({'errors': validator.errors}), 400
-    persister = LostAndFoundItemPersister(request.get_json())
-    reported_item = persister.persist_item(reporter_email=get_jwt_identity())
+    persister = LostAndFoundItemPersister(
+        request.get_json(), get_jwt_identity()
+    )
+    reported_item = persister.persist()
     return jsonify(reported_item), 201
 
 
