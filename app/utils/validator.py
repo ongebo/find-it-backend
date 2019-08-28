@@ -94,9 +94,7 @@ class LoginValidator:
             return True
         if self.redundant_fields_in_request():
             return True
-        if self.not_all_required_fields_present():
-            return True
-        if self.not_all_required_fields_are_strings():
+        if self.not_all_required_fields_present_as_strings():
             return True
         self.ensure_email_and_password_correct()
         return True if self.errors else False
@@ -107,16 +105,21 @@ class LoginValidator:
                 self.errors[field] = f'"{field}" not required!'
         return True if self.errors else False
 
-    def not_all_required_fields_present(self):
+    def not_all_required_fields_present_as_strings(self):
+        specified_required_fields = []
+
+        # log an error if a required field is not specified
         for k, v in self.required_fields.items():
             if k not in self.json_data:
                 self.errors[k] = f'{v} not specified!'
-        return True if self.errors else False
+            else:
+                specified_required_fields.append(k)
 
-    def not_all_required_fields_are_strings(self):
-        for k, v in self.required_fields.items():
-            if not isinstance(self.json_data[k], str):
-                self.errors[k] = f'{v} must be a string!'
+        # log an error if a required field is not a string
+        for field in specified_required_fields:
+            if not isinstance(self.json_data[field], str):
+                self.errors[field] = f'{self.json_data[field]} must be a string!'
+
         return True if self.errors else False
 
     def ensure_email_and_password_correct(self):
