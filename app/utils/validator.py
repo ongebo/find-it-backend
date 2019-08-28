@@ -1,5 +1,5 @@
 import re
-from ..models.user import User
+from ..models import User, LostAndFoundItem
 from werkzeug.security import check_password_hash
 
 
@@ -118,3 +118,45 @@ class LoginValidator(Validator):
             return
         if not check_password_hash(user.password, self.json_data['password']):
             self.errors['password'] = 'Incorrect password!'
+
+
+class LostAndFoundItemValidator(Validator):
+    def __init__(self, request):
+        super().__init__(request)
+        self.required_fields = {
+            'item_name': 'Item name', 'description': 'Description', 'image_url': 'Image url'
+        }
+        self.request = request
+
+    def validate_required_fields(self):
+        if len(self.json_data['item_name'].strip()) < 3:
+            self.errors['item_name'] = 'Item name should contain atleast 3 characters!'
+        if len(self.json_data['description'].strip()) < 12:
+            self.errors['description'] = 'Item description should contain atleast 12 characters!'
+        if LostAndFoundItem.query.filter_by(
+            name=self.json_data['item_name'],
+            description=self.json_data['description'],
+            image_path=self.json_data['image_url']
+        ).first():
+            self.errors['error'] = 'This item has already been reported!'
+
+    def uploaded_image_invalid(self):
+        self.accepted_file_extensions = ('png', 'jpg', 'jpeg')
+        self.uploaded_image_errors = {}
+        self.validate_uploaded_image()
+        return True if self.uploaded_image_errors else False
+
+    def validate_uploaded_image(self):
+        try:
+            item_image = self.request.files['image']
+            if not item_image.filename:
+                self.uploaded_image_errors['image'] = 'Image file not specified!'
+            if not self.image_filename_valid(item_image.filename):
+                self.uploaded_image_errors['image'] = 'Specify a .png, .jpg, or .jpeg file!'
+        except KeyError:
+            self.uploaded_image_errors['image'] = 'Image file not specified!'
+
+    def image_filename_valid(self, filename):
+        if '.' in filename:
+            return filename.rsplit('.', 1)[1].lower() in self.accepted_file_extensions
+        return False
