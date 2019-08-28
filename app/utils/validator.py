@@ -3,6 +3,52 @@ from ..models.user import User
 from werkzeug.security import check_password_hash
 
 
+class Validator:
+    def __init__(self, request):
+        self.json_data = request.get_json()
+        self.required_fields = {}  # override this in a subclass
+        self.errors = {}
+
+    def request_invalid(self):
+        if not self.json_data:
+            self.errors['error'] = 'Request not specified in JSON format!'
+            return True
+        if self.redundant_fields_in_request():
+            return True
+        if self.not_all_required_fields_present_as_strings():
+            return True
+        self.validate_required_fields()
+        return True if self.errors else False
+
+    def redundant_fields_in_request(self):
+        for field in self.json_data:
+            if field not in self.required_fields:
+                self.errors[field] = f'"{field}" not required!'
+        return True if self.errors else False
+
+    def not_all_required_fields_present_as_strings(self):
+        specified_required_fields = []
+
+        # log an error if a required field is not specified
+        for k, v in self.required_fields.items():
+            if k not in self.json_data:
+                self.errors[k] = f'{v} not specified!'
+            else:
+                specified_required_fields.append(k)
+
+        # log an error if a required field is not a string
+        for field in specified_required_fields:
+            if not isinstance(self.json_data[field], str):
+                self.errors[field] = f'{self.json_data[field]} must be a string!'
+
+        return True if self.errors else False
+
+    # override this method in a subclass to log errors if specified
+    # required fields are invalid (e.g. incorrect password)
+    def validate_required_fields(self):
+        pass
+
+
 class SignupValidator:
     def __init__(self, request):
         self.json_data = request.get_json()
