@@ -1,0 +1,23 @@
+from app.utils.persister import db, User
+
+
+def test_api_returns_error_given_incorrect_signup_data(test_client, invalid_signup_data):
+    response = test_client.post('/users', json=invalid_signup_data)
+    assert response.status_code == 400
+    assert 'errors' in response.get_json()
+
+
+def test_api_returns_signup_info_given_correct_signup_data(test_client, correct_signup_data):
+    response = test_client.post('/users', json=correct_signup_data)
+    assert response.status_code == 201
+    response_body = response.get_json()
+    assert correct_signup_data['username'] == response_body['username']
+    assert correct_signup_data['email'] == response_body['email']
+    assert correct_signup_data['phone_number'] == response_body['phone_number']
+    assert response_body['id']
+
+    # delete registered user from database
+    db.session.delete(User.query.filter_by(
+        username=correct_signup_data['username'], email=correct_signup_data['email']
+    ).first())
+    db.session.commit()
