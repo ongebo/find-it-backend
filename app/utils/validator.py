@@ -49,22 +49,15 @@ class Validator:
         pass
 
 
-class SignupValidator:
+class SignupValidator(Validator):
     def __init__(self, request):
-        self.json_data = request.get_json()
+        super().__init__(request)
         self.required_fields = {
             'username': 'Username', 'phone_number': 'Phone number',
             'email': 'Email', 'password': 'Password'
         }
-        self.errors = {}
 
-    def request_invalid(self):
-        if not self.json_data:
-            self.errors['error'] = 'Request not specified in JSON format!'
-            return True
-        if self.not_all_required_fields_present_as_strings():
-            return True
-        self.ensure_no_redundant_fields_in_request()
+    def validate_required_fields(self):
         self.validate_field(
             'username', r'[a-zA-Z]{3,30}( [a-zA-Z]{3,30})*$',
             (
@@ -81,29 +74,6 @@ class SignupValidator:
             'Invalid email address!'
         )
         self.validate_password()
-        return True if self.errors else False
-
-    def not_all_required_fields_present_as_strings(self):
-        specified_required_fields = []
-
-        # log an error if a required field is not specified
-        for k, v in self.required_fields.items():
-            if k not in self.json_data:
-                self.errors[k] = f'{v} not specified!'
-            else:
-                specified_required_fields.append(k)
-
-        # log an error if a required field is not a string
-        for field in specified_required_fields:
-            if not isinstance(self.json_data[field], str):
-                self.errors[field] = f'{self.json_data[field]} must be a string!'
-
-        return True if self.errors else False
-
-    def ensure_no_redundant_fields_in_request(self):
-        for key in self.json_data:
-            if key not in self.required_fields:
-                self.errors['redundancy'] = 'Excess data specified in request!'
 
     def validate_field(self, field, regex, error_message):
         field_value = self.json_data[field].strip()
@@ -136,47 +106,12 @@ class SignupValidator:
             )
 
 
-class LoginValidator:
+class LoginValidator(Validator):
     def __init__(self, request):
-        self.json_data = request.get_json()
+        super().__init__(request)
         self.required_fields = {'email': 'Email', 'password': 'Password'}
-        self.errors = {}
 
-    def request_invalid(self):
-        if not self.json_data:
-            self.errors['format'] = 'Request not specified in JSON format!'
-            return True
-        if self.redundant_fields_in_request():
-            return True
-        if self.not_all_required_fields_present_as_strings():
-            return True
-        self.ensure_email_and_password_correct()
-        return True if self.errors else False
-
-    def redundant_fields_in_request(self):
-        for field in self.json_data:
-            if field not in self.required_fields:
-                self.errors[field] = f'"{field}" not required!'
-        return True if self.errors else False
-
-    def not_all_required_fields_present_as_strings(self):
-        specified_required_fields = []
-
-        # log an error if a required field is not specified
-        for k, v in self.required_fields.items():
-            if k not in self.json_data:
-                self.errors[k] = f'{v} not specified!'
-            else:
-                specified_required_fields.append(k)
-
-        # log an error if a required field is not a string
-        for field in specified_required_fields:
-            if not isinstance(self.json_data[field], str):
-                self.errors[field] = f'{self.json_data[field]} must be a string!'
-
-        return True if self.errors else False
-
-    def ensure_email_and_password_correct(self):
+    def validate_required_fields(self):
         user = User.query.filter_by(email=self.json_data['email']).first()
         if not user:
             self.errors['email'] = 'Incorrect email address!'
