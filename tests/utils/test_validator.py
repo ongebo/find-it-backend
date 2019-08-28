@@ -1,4 +1,6 @@
-from app.utils.validator import SignupValidator
+from app.utils.validator import SignupValidator, LoginValidator
+from app.utils.persister import db, UserPersister
+from app.models.user import User
 from .conftest import Request
 
 
@@ -27,3 +29,37 @@ def test_validator_returns_invalid_given_invalid_required_fields(invalid_fields_
         'Password must contain atleast one lowercase letter, one uppercase letter,'
         ' a digit and be 6 to 12 characters long!'
     )
+
+
+def test_login_validator_returns_invalid_given_incorrect_email():
+    invalid_login_credentials = Request({
+        'email': 'AnastasiaSteele@gmail.com', 'password': 'ShadesOfGrey'
+    })
+    login_validator = LoginValidator(invalid_login_credentials)
+    assert login_validator.request_invalid()
+    assert login_validator.errors['email'] == 'Incorrect email address!'
+
+
+def test_login_validator_returns_invalid_given_incorrect_password():
+    # register a user to database
+    user = {
+        'username': 'John Doe',
+        'phone_number': '+1-111-274654',
+        'email': 'johndoe@gmail.com',
+        'password': 'JohnDoe2019'
+    }
+    UserPersister(user).persist_user()
+
+    # attempt to login with wrong password
+    invalid_login_password = Request({
+        'email': 'johndoe@gmail.com', 'password': 'Johnathan Doe'
+    })
+    login_validator = LoginValidator(invalid_login_password)
+    assert login_validator.request_invalid()
+    assert login_validator.errors['password'] == 'Incorrect password!'
+
+    # delete registered user from database
+    db.session.delete(User.query.filter_by(
+        username=user['username'], email=user['email']
+    ).first())
+    db.session.commit()
