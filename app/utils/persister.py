@@ -61,22 +61,18 @@ class LostAndFoundItemPersister(Persister):
         self.reporting_user = User.query.filter_by(
             email=reporter_email
         ).first()
+        self.kwargs = {
+            'name': self.json_data['item_name'],
+            'description': self.json_data['description'],
+            'image_path': self.json_data['image_url'],
+            'reporter_id': self.reporting_user.id
+        }
 
     def get_model_instance(self):
-        return LostAndFoundItem(
-            name=self.json_data['item_name'],
-            description=self.json_data['description'],
-            image_path=self.json_data['image_url'],
-            reporter_id=self.reporting_user.id
-        )
+        return LostAndFoundItem(**self.kwargs)
 
     def get_persisted_data_as_json(self):
-        reported_item = LostAndFoundItem.query.filter_by(
-            name=self.json_data['item_name'],
-            description=self.json_data['description'],
-            image_path=self.json_data['image_url'],
-            reporter_id=self.reporting_user.id
-        ).first()
+        reported_item = LostAndFoundItem.query.filter_by(**self.kwargs).first()
         return {
             'id': reported_item.id,
             'item_name': reported_item.name,
