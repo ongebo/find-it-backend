@@ -56,3 +56,13 @@ def post_item_image():
             request.base_url, secure_name
         )
     }), 200
+
+
+@app.errorhandler(413)
+def display_file_too_large_error(error):
+    return jsonify({'error': 'Image larger than 5 megabytes!'}), 413
+
+
+@app.errorhandler(404)
+def display_404_error(error):
+    return jsonify({'error': 'The requested resource does not exist!'}), 404
