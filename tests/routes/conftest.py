@@ -21,5 +21,13 @@ def correct_signup_data():
 
 
 @pytest.fixture
+def invalid_login_data():
+    return {
+        'email': 22222,
+        'password': ''
+    }
+
+
+@pytest.fixture
 def test_client():
     return app.test_client()

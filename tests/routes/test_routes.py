@@ -21,3 +21,28 @@ def test_api_returns_signup_info_given_correct_signup_data(test_client, correct_
         username=correct_signup_data['username'], email=correct_signup_data['email']
     ).first())
     db.session.commit()
+
+
+def test_api_returns_error_given_wrong_login_information(test_client, invalid_login_data):
+    response = test_client.post('/login', json=invalid_login_data)
+    assert response.status_code == 400
+    assert 'errors' in response.get_json()
+
+
+def test_api_returns_tokens_given_correct_login_information(test_client, correct_signup_data):
+    test_client.post('/users', json=correct_signup_data)
+    login_data = {
+        'email': correct_signup_data['email'],
+        'password': correct_signup_data['password']
+    }
+    response = test_client.post('/login', json=login_data)
+
+    assert response.status_code == 200
+    assert 'access_token' in response.get_json()
+    assert 'refresh_token' in response.get_json()
+
+    # delete registered user from database
+    db.session.delete(User.query.filter_by(
+        username=correct_signup_data['username'], email=correct_signup_data['email']
+    ).first())
+    db.session.commit()
