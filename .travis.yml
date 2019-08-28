@@ -8,7 +8,7 @@ services:
   - postgresql
 
 env:
-  - FINDIT_PROJECT_MODE=test_mode TEST_DATABASE_URL=postgres://postgres:@localhost:5432/testdb
+  - FINDIT_PROJECT_MODE=test_mode TEST_DATABASE_URL=postgres://postgres:@localhost:5432/testdb JWT_SECRET_KEY='\xfb\xab\xf5\x10\xed[\x94\xeb\x8bE\x9c\x8e\xe5lgx[\xda>\xeeq\xd8\x1a\x83'
 
 before_script:
   - psql -c "CREATE DATABASE testdb;" -U postgres
