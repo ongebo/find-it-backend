@@ -39,7 +39,7 @@ class Validator:
         # log an error if a required field is not a string
         for field in specified_required_fields:
             if not isinstance(self.json_data[field], str):
-                self.errors[field] = f'{self.json_data[field]} must be a string!'
+                self.errors[field] = f'{field} must be a string!'
 
         return True if self.errors else False
 
