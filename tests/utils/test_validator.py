@@ -11,7 +11,7 @@ def test_validator_returns_false_if_request_not_json():
 def test_validator_returns_false_if_redundant_fields_in_request_with_all_required_string_fields(redundant_request):
     validator = SignupValidator(redundant_request)
     assert validator.request_invalid()
-    assert validator.errors['redundancy'] == 'Excess data specified in request!'
+    assert validator.errors['school'] == '"school" not required!'
 
 
 def test_validator_returns_false_given_invalid_required_fields(invalid_fields_request):
