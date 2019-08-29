@@ -57,7 +57,7 @@ def post_item_image():
         'image_url': os.path.join(
             request.base_url, secure_name
         )
-    }), 200
+    }), 201
 
 
 @app.errorhandler(413)
