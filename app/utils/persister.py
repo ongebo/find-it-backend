@@ -68,9 +68,9 @@ class LostAndFoundItemPersister(Persister):
         reported_item = LostAndFoundItem.query.filter_by(**self.kwargs).first()
         return {
             'id': reported_item.id,
-            'item_name': reported_item.name,
+            'item_name': reported_item.item_name,
             'description': reported_item.description,
-            'image_url': reported_item.image_path,
+            'image_url': reported_item.image_url,
             'report_date': reported_item.report_date,
             'reported_by': self.reporting_user.username
         }

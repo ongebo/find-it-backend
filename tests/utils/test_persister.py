@@ -1,5 +1,13 @@
-from app.utils.persister import db, UserPersister
-from app.models.user import User
+from app.utils.persister import UserPersister, LostAndFoundItemPersister
+from app.models import db, User, LostAndFoundItem
+
+
+def clean_database():
+    for user in User.query.all():
+        db.session.delete(user)
+    for item in LostAndFoundItem.query.all():
+        db.session.delete(item)
+    db.session.commit()
 
 
 def test_persister_saves_user_to_database_and_returns_saved_information():
@@ -12,18 +20,40 @@ def test_persister_saves_user_to_database_and_returns_saved_information():
     persisted_data = UserPersister(user).persist()
 
     # ensure user was saved to database
-    saved_user = User.query.filter_by(
+    assert User.query.filter_by(
         username=user['username'],
         phone_number=user['phone_number'],
         email=user['email']
     ).first()
-    assert saved_user
 
     # persister returns saved user data with an id and no password
     user['id'] = persisted_data['id']
     del user['password']
     assert user == persisted_data
 
-    # delete saved user from database
-    db.session.delete(saved_user)
-    db.session.commit()
+    clean_database()
+
+
+def test_persister_saves_lost_and_found_item_and_returns_saved_information():
+    user = {
+        'username': 'John Doe',
+        'phone_number': '+1-111-274654',
+        'email': 'johndoe@gmail.com',
+        'password': 'JohnDoe2019'
+    }
+    UserPersister(user).persist()
+    lost_item = {
+        'item_name': 'Black Jacket',
+        'description': 'Found at the cafeteria.',
+        'image_url': 'http://somedomain.com/some-image.png'
+    }
+    persisted_data = LostAndFoundItemPersister(lost_item, user['email']).persist()
+
+    assert persisted_data['item_name'] == lost_item['item_name']
+    assert persisted_data['description'] == lost_item['description']
+    assert persisted_data['image_url'] == lost_item['image_url']
+    assert 'id' in persisted_data
+    assert 'report_date' in persisted_data
+    assert 'reported_by' in persisted_data
+
+    clean_database()
