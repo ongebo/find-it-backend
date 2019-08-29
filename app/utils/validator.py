@@ -134,9 +134,9 @@ class LostAndFoundItemValidator(Validator):
         if len(self.json_data['description'].strip()) < 12:
             self.errors['description'] = 'Item description should contain atleast 12 characters!'
         if LostAndFoundItem.query.filter_by(
-            name=self.json_data['item_name'],
-            description=self.json_data['description'],
-            image_path=self.json_data['image_url']
+            name=self.json_data['item_name'].strip(),
+            description=self.json_data['description'].strip(),
+            image_path=self.json_data['image_url'].strip()
         ).first():
             self.errors['error'] = 'This item has already been reported!'
 
