@@ -3,6 +3,11 @@ from app.routes.routes import app
 
 
 @pytest.fixture
+def test_client():
+    return app.test_client()
+
+
+@pytest.fixture
 def invalid_signup_data():
     return {
         'username': 1234,
@@ -29,5 +34,18 @@ def invalid_login_data():
 
 
 @pytest.fixture
-def test_client():
-    return app.test_client()
+def invalid_lost_item_report():
+    return {
+        'item_name': '',
+        'description': '22',
+        'image_url': ''
+    }
+
+
+@pytest.fixture
+def valid_lost_item_report():
+    return {
+        'item_name': 'Laptop',
+        'description': 'Found unattended in the lecture room.',
+        'image_url': 'http://hostname.domain/unattended-laptop.jpg'
+    }
