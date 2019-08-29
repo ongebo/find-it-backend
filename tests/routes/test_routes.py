@@ -115,3 +115,21 @@ def test_api_saves_valid_uploaded_file_and_returns_its_url(test_client, correct_
         app.config['UPLOAD_FOLDER'],
         valid_upload_file[1]
     ))
+
+
+def test_api_returns_413_given_large_image_file(test_client, correct_signup_data, large_upload_file):
+    response = test_client.post(
+        '/items/images', data={'image': large_upload_file}, headers={
+            'Authorization': 'Bearer ' + register_and_login_user(test_client, correct_signup_data)
+        }
+    )
+    assert response.status_code == 413
+    assert response.get_json()['error'] == 'Image larger than 5 megabytes!'
+    clean_database()
+
+
+def test_api_returns_404_when_fetching_non_existent_url(test_client):
+    response = test_client.get('/undefined/url/')
+    assert response.status_code == 404
+    assert response.get_json(
+    )['error'] == 'The requested resource does not exist!'

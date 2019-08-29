@@ -1,4 +1,5 @@
 import pytest
+import os
 import io
 from app.routes.routes import app
 
@@ -60,3 +61,8 @@ def invalid_upload_file():
 @pytest.fixture
 def valid_upload_file():
     return (io.BytesIO(b'binary-file-content'), 'lost-and-found.png')
+
+
+@pytest.fixture
+def large_upload_file():
+    return (io.BytesIO(os.urandom(10 * 1024 * 1024)), 'lost-and-found.png')
