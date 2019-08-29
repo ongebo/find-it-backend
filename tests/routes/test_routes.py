@@ -1,4 +1,5 @@
 from app.utils.persister import db, User
+from ..test_utils import clean_database
 
 
 def test_api_returns_error_given_incorrect_signup_data(test_client, invalid_signup_data):
@@ -16,11 +17,7 @@ def test_api_returns_signup_info_given_correct_signup_data(test_client, correct_
     assert correct_signup_data['phone_number'] == response_body['phone_number']
     assert response_body['id']
 
-    # delete registered user from database
-    db.session.delete(User.query.filter_by(
-        username=correct_signup_data['username'], email=correct_signup_data['email']
-    ).first())
-    db.session.commit()
+    clean_database()
 
 
 def test_api_returns_error_given_wrong_login_information(test_client, invalid_login_data):
@@ -41,8 +38,4 @@ def test_api_returns_tokens_given_correct_login_information(test_client, correct
     assert 'access_token' in response.get_json()
     assert 'refresh_token' in response.get_json()
 
-    # delete registered user from database
-    db.session.delete(User.query.filter_by(
-        username=correct_signup_data['username'], email=correct_signup_data['email']
-    ).first())
-    db.session.commit()
+    clean_database()
