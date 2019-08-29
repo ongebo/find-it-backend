@@ -35,3 +35,23 @@ def invalid_fields_request():
         'email': 'John Doe',
         'password': 'JoDoe'
     })
+
+
+@pytest.fixture
+def invalid_item_data():
+    # invalid lost and found item request, item_name should contain atleast
+    # 3 characters and description atleast 12 characters
+    return Request({
+        'item_name': '1',
+        'description': '< 12',
+        'image_url': '',
+    })
+
+
+@pytest.fixture
+def valid_item_data():
+    return Request({
+        'item_name': 'iPhone X',
+        'description': 'I found this phone misplaced at the cafeteria.',
+        'image_url': 'http://somehost.com/some-image.png',
+    })

@@ -1,6 +1,6 @@
-from app.utils.validator import SignupValidator, LoginValidator
-from app.utils.persister import db, UserPersister
-from app.models.user import User
+from app.utils.validator import SignupValidator, LoginValidator, LostAndFoundItemValidator
+from app.utils.persister import db, UserPersister, LostAndFoundItemPersister
+from app.models import User, LostAndFoundItem
 from .conftest import Request
 
 
@@ -59,6 +59,45 @@ def test_login_validator_returns_invalid_given_incorrect_password():
     assert login_validator.errors['password'] == 'Incorrect password!'
 
     # delete registered user from database
+    db.session.delete(User.query.filter_by(
+        username=user['username'], email=user['email']
+    ).first())
+    db.session.commit()
+
+
+def test_item_validator_returns_invalid_given_incorrect_item_data(invalid_item_data):
+    item_validator = LostAndFoundItemValidator(invalid_item_data)
+    assert item_validator.request_invalid()
+    assert item_validator.errors['item_name'] == 'Item name should contain atleast 3 characters!'
+    assert item_validator.errors['description'] == 'Item description should contain atleast 12 characters!'
+
+
+def test_item_validator_returns_invalid_if_item_already_in_database(valid_item_data):
+    # save item to database, this requires a registerd user in the database
+    user = {
+        'username': 'John Doe',
+        'phone_number': '+1-111-274654',
+        'email': 'johndoe@gmail.com',
+        'password': 'JohnDoe2019'
+    }
+    # TODO: decouple validator test from using persisters
+    persisted_user = UserPersister(user).persist()
+    lost_and_found_item = LostAndFoundItem(
+        name=valid_item_data.get_json()['item_name'],
+        description=valid_item_data.get_json()['description'],
+        image_path=valid_item_data.get_json()['image_url'],
+        reporter_id=persisted_user['id'],
+    )
+    db.session.add(lost_and_found_item)
+    db.session.commit()
+
+    item_validator = LostAndFoundItemValidator(valid_item_data)
+    assert item_validator.request_invalid()
+    assert item_validator.errors['error'] == 'This item has already been reported!'
+
+    # clean registered items from database
+    # deleting registered user will delete by cascade lost and found item
+    # attached to the registered user
     db.session.delete(User.query.filter_by(
         username=user['username'], email=user['email']
     ).first())
