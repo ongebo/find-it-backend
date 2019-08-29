@@ -1,15 +1,8 @@
 from app.utils.validator import SignupValidator, LoginValidator, LostAndFoundItemValidator
 from app.models import db, User, LostAndFoundItem
 from .conftest import Request
+from ..test_utils import clean_database
 from werkzeug.security import generate_password_hash
-
-
-def clean_database():
-    for user in User.query.all():
-        db.session.delete(user)
-    for item in LostAndFoundItem.query.all():
-        db.session.delete(item)
-    db.session.commit()
 
 
 def register_user_in_database(user):

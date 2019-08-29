@@ -1,13 +1,6 @@
 from app.utils.persister import UserPersister, LostAndFoundItemPersister
-from app.models import db, User, LostAndFoundItem
-
-
-def clean_database():
-    for user in User.query.all():
-        db.session.delete(user)
-    for item in LostAndFoundItem.query.all():
-        db.session.delete(item)
-    db.session.commit()
+from app.models import User, LostAndFoundItem
+from ..test_utils import clean_database
 
 
 def test_persister_saves_user_to_database_and_returns_saved_information():
