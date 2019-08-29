@@ -12,6 +12,11 @@ def clean_database():
     db.session.commit()
 
 
+def register_user_in_database(user):
+    db.session.add(User(**user))
+    db.session.commit()
+
+
 def test_validator_returns_invalid_if_request_not_json():
     validator = SignupValidator(Request('non-JSON string'))
     assert validator.request_invalid()
@@ -49,15 +54,12 @@ def test_login_validator_returns_invalid_given_incorrect_email():
 
 
 def test_login_validator_returns_invalid_given_incorrect_password():
-    # register a user to database
-    user = {
+    register_user_in_database({
         'username': 'John Doe',
         'phone_number': '+1-111-274654',
         'email': 'johndoe@gmail.com',
         'password': generate_password_hash('JohnDoe2019', method='sha256')
-    }
-    db.session.add(User(**user))
-    db.session.commit()
+    })
 
     # attempt to login with wrong password
     invalid_login_password = Request({
@@ -85,8 +87,7 @@ def test_item_validator_returns_invalid_if_item_already_in_database(valid_item_d
         'email': 'johndoe@gmail.com',
         'password': generate_password_hash('JohnDoe2019', method='sha256')
     }
-    db.session.add(User(**user))
-    db.session.commit()
+    register_user_in_database(user)
     persisted_user = User.query.filter_by(**user).first()
     lost_and_found_item = LostAndFoundItem(
         reporter_id=persisted_user.id,
