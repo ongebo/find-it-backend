@@ -1,7 +1,7 @@
 from app.utils.validator import SignupValidator, LoginValidator, LostAndFoundItemValidator
-from app.utils.persister import db, UserPersister, LostAndFoundItemPersister
-from app.models import User, LostAndFoundItem
+from app.models import db, User, LostAndFoundItem
 from .conftest import Request
+from werkzeug.security import generate_password_hash
 
 
 def test_validator_returns_invalid_if_request_not_json():
@@ -46,9 +46,10 @@ def test_login_validator_returns_invalid_given_incorrect_password():
         'username': 'John Doe',
         'phone_number': '+1-111-274654',
         'email': 'johndoe@gmail.com',
-        'password': 'JohnDoe2019'
+        'password': generate_password_hash('JohnDoe2019', method='sha256')
     }
-    UserPersister(user).persist()
+    db.session.add(User(**user))
+    db.session.commit()
 
     # attempt to login with wrong password
     invalid_login_password = Request({
@@ -78,19 +79,21 @@ def test_item_validator_returns_invalid_if_item_already_in_database(valid_item_d
         'username': 'John Doe',
         'phone_number': '+1-111-274654',
         'email': 'johndoe@gmail.com',
-        'password': 'JohnDoe2019'
+        'password': generate_password_hash('JohnDoe2019', method='sha256')
     }
-    # TODO: decouple validator test from using persisters
-    persisted_user = UserPersister(user).persist()
+    db.session.add(User(**user))
+    db.session.commit()
+    persisted_user = User.query.filter_by(**user).first()
     lost_and_found_item = LostAndFoundItem(
         name=valid_item_data.get_json()['item_name'],
         description=valid_item_data.get_json()['description'],
         image_path=valid_item_data.get_json()['image_url'],
-        reporter_id=persisted_user['id'],
+        reporter_id=persisted_user.id,
     )
     db.session.add(lost_and_found_item)
     db.session.commit()
 
+    # assert validator returns invalid because item already exists in database
     item_validator = LostAndFoundItemValidator(valid_item_data)
     assert item_validator.request_invalid()
     assert item_validator.errors['error'] == 'This item has already been reported!'
