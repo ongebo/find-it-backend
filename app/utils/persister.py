@@ -57,9 +57,7 @@ class LostAndFoundItemPersister(Persister):
             email=reporter_email
         ).first()
         self.kwargs = {
-            'name': self.json_data['item_name'],
-            'description': self.json_data['description'],
-            'image_path': self.json_data['image_url'],
+            **self.json_data,
             'reporter_id': self.reporting_user.id
         }
 

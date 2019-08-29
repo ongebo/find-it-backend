@@ -81,7 +81,7 @@ class SignupValidator(Validator):
         self.validate_password()
 
     def validate_field(self, field, regex, error_message):
-        field_value = self.json_data[field].strip()
+        field_value = self.json_data[field]
         field_pattern = re.compile(regex)
         if not field_pattern.match(field_value):
             self.errors[field] = error_message
@@ -134,15 +134,11 @@ class LostAndFoundItemValidator(Validator):
         self.request = request
 
     def validate_required_fields(self):
-        if len(self.json_data['item_name'].strip()) < 3:
+        if len(self.json_data['item_name']) < 3:
             self.errors['item_name'] = 'Item name should contain atleast 3 characters!'
-        if len(self.json_data['description'].strip()) < 12:
+        if len(self.json_data['description']) < 12:
             self.errors['description'] = 'Item description should contain atleast 12 characters!'
-        if LostAndFoundItem.query.filter_by(
-            name=self.json_data['item_name'].strip(),
-            description=self.json_data['description'].strip(),
-            image_path=self.json_data['image_url'].strip()
-        ).first():
+        if LostAndFoundItem.query.filter_by(**self.json_data).first():
             self.errors['error'] = 'This item has already been reported!'
 
     def uploaded_image_invalid(self):

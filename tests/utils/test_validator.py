@@ -85,10 +85,8 @@ def test_item_validator_returns_invalid_if_item_already_in_database(valid_item_d
     db.session.commit()
     persisted_user = User.query.filter_by(**user).first()
     lost_and_found_item = LostAndFoundItem(
-        name=valid_item_data.get_json()['item_name'],
-        description=valid_item_data.get_json()['description'],
-        image_path=valid_item_data.get_json()['image_url'],
         reporter_id=persisted_user.id,
+        **valid_item_data.get_json()
     )
     db.session.add(lost_and_found_item)
     db.session.commit()
