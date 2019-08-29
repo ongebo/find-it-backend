@@ -12,3 +12,4 @@ class User(db.Model):
     )
     email = db.Column('email', db.String, unique=True, nullable=False)
     password = db.Column('password', db.String, nullable=False)
+    reporter = db.relationship('LostAndFoundItem', cascade='all,delete')

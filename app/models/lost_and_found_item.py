@@ -14,4 +14,3 @@ class LostAndFoundItem(db.Model):
         nullable=False, default=datetime.utcnow()
     )
     reporter_id = db.Column('reporter_id', db.ForeignKey('users.id'))
-    reporter = db.relationship('User')
