@@ -7,9 +7,17 @@ class Request:
 
     def __init__(self, body):
         self.body = body
+        self.files = {}
 
     def get_json(self):
         return self.body if isinstance(self.body, dict) else None
+
+
+class File:
+    """A dummy class representing a file in an HTTP request."""
+
+    def __init__(self, filename):
+        self.filename = filename
 
 
 def pytest_configure(config):
@@ -55,3 +63,17 @@ def valid_item_data():
         'description': 'I found this phone misplaced at the cafeteria.',
         'image_url': 'http://somehost.com/some-image.png',
     })
+
+
+@pytest.fixture
+def request_without_image():
+    return Request(None)
+
+
+@pytest.fixture
+def unsupported_image_format_request():
+    request = Request(None)
+    request.files = {
+        'image': File('lost_and_found_item.mp4')
+    }
+    return request

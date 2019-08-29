@@ -102,3 +102,17 @@ def test_item_validator_returns_invalid_if_item_already_in_database(valid_item_d
         username=user['username'], email=user['email']
     ).first())
     db.session.commit()
+
+
+def test_item_validator_returns_invalid_if_item_image_not_specified(request_without_image):
+    item_validator = LostAndFoundItemValidator(request_without_image)
+    assert item_validator.uploaded_image_invalid()
+    assert item_validator.uploaded_image_errors['image'] == 'Image file not specified!'
+
+
+def test_item_validator_returns_invalid_if_item_image_format_not_supported(unsupported_image_format_request):
+    item_validator = LostAndFoundItemValidator(
+        unsupported_image_format_request
+    )
+    assert item_validator.uploaded_image_invalid()
+    assert item_validator.uploaded_image_errors['image'] == 'Specify a .png, .jpg, or .jpeg file!'

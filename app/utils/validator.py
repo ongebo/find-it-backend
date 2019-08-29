@@ -149,8 +149,6 @@ class LostAndFoundItemValidator(Validator):
     def validate_uploaded_image(self):
         try:
             item_image = self.request.files['image']
-            if not item_image.filename:
-                self.uploaded_image_errors['image'] = 'Image file not specified!'
             if not self.image_filename_valid(item_image.filename):
                 self.uploaded_image_errors['image'] = 'Specify a .png, .jpg, or .jpeg file!'
         except KeyError:
