@@ -7,15 +7,10 @@ class Persister:
         self.json_data = json_data
 
     def persist(self):
-        self.strip_spaces()
         model_instance = self.get_model_instance()
         db.session.add(model_instance)
         db.session.commit()
         return self.get_persisted_data_as_json()
-
-    def strip_spaces(self):
-        for k, v in self.json_data.items():
-            self.json_data[k] = v.strip()
 
     # override this method in a subclass to create a model instance
     # to be persisted to the database

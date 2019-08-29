@@ -17,6 +17,7 @@ class Validator:
             return True
         if self.not_all_required_fields_present_as_strings():
             return True
+        self.strip_spaces()
         self.validate_required_fields()
         return True if self.errors else False
 
@@ -42,6 +43,10 @@ class Validator:
                 self.errors[field] = f'{field} must be a string!'
 
         return True if self.errors else False
+
+    def strip_spaces(self):
+        for k, v in self.json_data.items():
+            self.json_data[k] = v.strip()
 
     # override this method in a subclass to log errors if specified
     # required fields are invalid (e.g. incorrect password)
