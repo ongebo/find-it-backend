@@ -1,5 +1,7 @@
 from app.utils.persister import db, User
 from ..test_utils import clean_database
+from app import app
+import os
 
 
 def register_and_login_user(test_client, user_data):
@@ -83,3 +85,33 @@ def test_api_returns_registered_info_given_valid_lost_and_found_item_report(test
     assert 'id' in response.get_json()
 
     clean_database()
+
+
+def test_api_returns_error_given_unsupported_image_file_upload(test_client, correct_signup_data, invalid_upload_file):
+    response = test_client.post(
+        '/items/images', data={'image': invalid_upload_file}, headers={
+            'Authorization': 'Bearer ' + register_and_login_user(test_client, correct_signup_data)
+        }
+    )
+    assert response.status_code == 400
+    assert response.get_json(
+    )['errors']['image'] == 'Specify a .png, .jpg, or .jpeg file!'
+
+    clean_database()
+
+
+def test_api_saves_valid_uploaded_file_and_returns_its_url(test_client, correct_signup_data, valid_upload_file):
+    response = test_client.post(
+        '/items/images', data={'image': valid_upload_file}, headers={
+            'Authorization': 'Bearer ' + register_and_login_user(test_client, correct_signup_data)
+        }
+    )
+    assert response.status_code == 201
+    assert response.get_json()['image_url']
+
+    clean_database()
+    # remove uploaded file
+    os.remove(os.path.join(
+        app.config['UPLOAD_FOLDER'],
+        valid_upload_file[1]
+    ))

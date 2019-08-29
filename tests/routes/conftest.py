@@ -1,4 +1,5 @@
 import pytest
+import io
 from app.routes.routes import app
 
 
@@ -49,3 +50,13 @@ def valid_lost_item_report():
         'description': 'Found unattended in the lecture room.',
         'image_url': 'http://hostname.domain/unattended-laptop.jpg'
     }
+
+
+@pytest.fixture
+def invalid_upload_file():
+    return (io.BytesIO(b'binary-file-content'), 'lost-and-found.mp4')
+
+
+@pytest.fixture
+def valid_upload_file():
+    return (io.BytesIO(b'binary-file-content'), 'lost-and-found.png')
