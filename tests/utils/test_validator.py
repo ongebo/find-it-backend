@@ -4,6 +4,14 @@ from .conftest import Request
 from werkzeug.security import generate_password_hash
 
 
+def clean_database():
+    for user in User.query.all():
+        db.session.delete(user)
+    for item in LostAndFoundItem.query.all():
+        db.session.delete(item)
+    db.session.commit()
+
+
 def test_validator_returns_invalid_if_request_not_json():
     validator = SignupValidator(Request('non-JSON string'))
     assert validator.request_invalid()
@@ -59,11 +67,7 @@ def test_login_validator_returns_invalid_given_incorrect_password():
     assert login_validator.request_invalid()
     assert login_validator.errors['password'] == 'Incorrect password!'
 
-    # delete registered user from database
-    db.session.delete(User.query.filter_by(
-        username=user['username'], email=user['email']
-    ).first())
-    db.session.commit()
+    clean_database()
 
 
 def test_item_validator_returns_invalid_given_incorrect_item_data(invalid_item_data):
@@ -96,13 +100,7 @@ def test_item_validator_returns_invalid_if_item_already_in_database(valid_item_d
     assert item_validator.request_invalid()
     assert item_validator.errors['error'] == 'This item has already been reported!'
 
-    # clean registered items from database
-    # deleting registered user will delete by cascade lost and found item
-    # attached to the registered user
-    db.session.delete(User.query.filter_by(
-        username=user['username'], email=user['email']
-    ).first())
-    db.session.commit()
+    clean_database()
 
 
 def test_item_validator_returns_invalid_if_item_image_not_specified(request_without_image):
