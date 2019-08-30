@@ -1,5 +1,5 @@
 import os
-from flask import request, jsonify
+from flask import request, jsonify, send_file
 from .. import app
 from ..utils.validator import SignupValidator, LoginValidator, LostAndFoundItemValidator
 from ..utils.persister import UserPersister, LostAndFoundItemPersister
@@ -108,12 +108,30 @@ def post_item_image():
         return jsonify({'errors': validator.uploaded_image_errors}), 400
     image_file = request.files['image']
     secure_name = secure_filename(image_file.filename)
-    image_file.save(os.path.join(app.config['UPLOAD_FOLDER'], secure_name))
+
+    # set up directory for saving uploaded image
+    username = User.query.filter_by(email=get_jwt_identity()).first().username
+    save_directory = os.path.join(app.config['UPLOAD_FOLDER'], username)
+    if not os.path.exists(save_directory):
+        os.mkdir(save_directory)
+
+    image_file.save(os.path.join(save_directory, secure_name))
     return jsonify({
         'image_url': os.path.join(
-            request.base_url, secure_name
+            request.base_url, username, secure_name
         )
     }), 201
+
+
+@app.route('/items/images/<username>/<image_name>')
+@jwt_required
+def get_item_image(username, image_name):
+    filename = os.path.join(app.config['UPLOAD_FOLDER'], username, image_name)
+    try:
+        file = open(filename, 'r')
+        return send_file(file.name), 200
+    except FileNotFoundError:
+        return jsonify({'error': 'Requested file not found!'}), 404
 
 
 @app.errorhandler(413)
