@@ -13,6 +13,15 @@ def register_and_login_user(test_client, user_data):
     return response.get_json()['access_token']
 
 
+def remove_test_data(username, filename):
+    clean_database()
+    os.remove(os.path.join(
+        app.config['UPLOAD_FOLDER'],
+        username,
+        filename
+    ))
+
+
 def test_api_returns_error_given_incorrect_signup_data(test_client, invalid_signup_data):
     response = test_client.post('/users', json=invalid_signup_data)
     assert response.status_code == 400
@@ -295,12 +304,37 @@ def test_api_saves_valid_uploaded_file_and_returns_its_url(test_client, correct_
     assert response.status_code == 201
     assert response.get_json()['image_url']
 
+    remove_test_data(correct_signup_data['username'], valid_upload_file[1])
+
+
+def test_404_returned_when_fetching_non_existent_image_from_api(test_client, correct_signup_data):
+    response = test_client.get(
+        '/items/images/undefined-username/image.png', headers={
+            'Authorization': 'Bearer ' + register_and_login_user(test_client, correct_signup_data)
+        }
+    )
+    assert response.status_code == 404
+    assert response.get_json()['error'] == 'Requested file not found!'
+
     clean_database()
-    # remove uploaded file
-    os.remove(os.path.join(
-        app.config['UPLOAD_FOLDER'],
-        valid_upload_file[1]
-    ))
+
+
+def test_api_returns_existent_item_image_file_for_valid_request(test_client, correct_signup_data, valid_upload_file):
+    access_token = register_and_login_user(test_client, correct_signup_data)
+    test_client.post(
+        '/items/images', data={'image': valid_upload_file}, headers={
+            'Authorization': 'Bearer ' + access_token
+        }
+    )
+    response = test_client.get(
+        f'/items/images/{correct_signup_data["username"]}/{valid_upload_file[1]}', headers={
+            'Authorization': 'Bearer ' + access_token
+        }
+    )
+    assert response.status_code == 200
+    assert response.get_data()
+
+    remove_test_data(correct_signup_data['username'], valid_upload_file[1])
 
 
 def test_api_returns_413_given_large_image_file(test_client, correct_signup_data, large_upload_file):
