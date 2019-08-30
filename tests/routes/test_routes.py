@@ -4,13 +4,15 @@ from app import app
 import os
 
 
-def register_and_login_user(test_client, user_data):
+def register_and_login_user(test_client, user_data, refresh=False):
     test_client.post('/users', json=user_data)
     response = test_client.post('/login', json={
         'email': user_data['email'],
         'password': user_data['password']
     })
-    return response.get_json()['access_token']
+    access_token = response.get_json()['access_token']
+    refresh_token = response.get_json()['refresh_token']
+    return refresh_token if refresh else access_token
 
 
 def remove_test_data(username, filename):
@@ -58,6 +60,20 @@ def test_api_returns_tokens_given_correct_login_information(test_client, correct
     assert 'access_token' in response.get_json()
     assert 'refresh_token' in response.get_json()
 
+    clean_database()
+
+
+def test_refresh_endpoint_returns_new_access_token(test_client, correct_signup_data):
+    refresh_token = register_and_login_user(
+        test_client, correct_signup_data, refresh=True
+    )
+    response = test_client.post(
+        '/refresh', headers={
+            'Authorization': 'Bearer ' + refresh_token
+        }
+    )
+    assert response.status_code == 200
+    assert 'access_token' in response.get_json()
     clean_database()
 
 
