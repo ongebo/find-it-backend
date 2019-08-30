@@ -87,6 +87,38 @@ def test_api_returns_registered_info_given_valid_lost_and_found_item_report(test
     clean_database()
 
 
+def test_api_returns_404_when_fetching_all_items_with_non_in_database(test_client, correct_signup_data):
+    response = test_client.get(
+        '/items', headers={
+            'Authorization': 'Bearer ' + register_and_login_user(test_client, correct_signup_data)
+        }
+    )
+
+    assert response.status_code == 404
+    assert response.get_json()['error'] == 'No lost and found items!'
+
+    clean_database()
+
+
+def test_api_returns_lost_and_found_items_in_database(test_client, correct_signup_data, valid_lost_item_report):
+    access_token = register_and_login_user(test_client, correct_signup_data)
+    test_client.post(
+        '/items', json=valid_lost_item_report, headers={
+            'Authorization': 'Bearer ' + access_token
+        }
+    )
+    response = test_client.get(
+        '/items', headers={
+            'Authorization': 'Bearer ' + access_token
+        }
+    )
+
+    assert response.status_code == 200
+    assert response.get_json()['items']
+
+    clean_database()
+
+
 def test_api_returns_error_given_unsupported_image_file_upload(test_client, correct_signup_data, invalid_upload_file):
     response = test_client.post(
         '/items/images', data={'image': invalid_upload_file}, headers={
