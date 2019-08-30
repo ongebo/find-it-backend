@@ -7,7 +7,7 @@ from flask_jwt_extended import (
     create_access_token, create_refresh_token, jwt_required, get_jwt_identity
 )
 from werkzeug.utils import secure_filename
-from ..models import LostAndFoundItem, User, get_item_as_json, db
+from ..models import LostAndFoundItem, User, get_item_as_json, db, user_not_item_owner
 
 
 @app.route('/users', methods=['POST'])
@@ -75,9 +75,7 @@ def update_specific_lost_and_found_item(item_id):
     if not item:
         return jsonify({'error': f'No item with id {item_id}'}), 404
 
-    requesting_user = User.query.filter_by(email=get_jwt_identity()).first()
-    reporter = User.query.filter_by(id=item.reporter_id).first()
-    if requesting_user != reporter:
+    if user_not_item_owner(get_jwt_identity(), item):
         return jsonify({'forbidden': 'You are not the owner of this item report!'}), 403
 
     item.item_name = request.get_json()['item_name']
@@ -85,6 +83,21 @@ def update_specific_lost_and_found_item(item_id):
     item.image_url = request.get_json()['image_url']
     db.session.commit()
     return jsonify(get_item_as_json(item)), 200
+
+
+@app.route('/items/<int:item_id>', methods=['DELETE'])
+@jwt_required
+def delete_specific_lost_and_found_item(item_id):
+    item = LostAndFoundItem.query.filter_by(id=item_id).first()
+    if not item:
+        return jsonify({'error': f'No item with id {item_id}'}), 404
+
+    if user_not_item_owner(get_jwt_identity(), item):
+        return jsonify({'forbidden': 'You are not the owner of this item report!'}), 403
+
+    db.session.delete(item)
+    db.session.commit()
+    return jsonify({'message': 'Item deleted'}), 200
 
 
 @app.route('/items/images', methods=['POST'])
