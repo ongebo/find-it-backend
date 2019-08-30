@@ -119,6 +119,39 @@ def test_api_returns_lost_and_found_items_in_database(test_client, correct_signu
     clean_database()
 
 
+def test_api_returns_404_when_fetching_specific_item_which_is_non_existent(test_client, correct_signup_data):
+    non_existent_id = 0
+    response = test_client.get(
+        f'/items/{non_existent_id}', headers={
+            'Authorization': 'Bearer ' + register_and_login_user(test_client, correct_signup_data)
+        }
+    )
+
+    assert response.status_code == 404
+    assert response.get_json()['error'] == f'No item with id {non_existent_id}'
+
+    clean_database()
+
+
+def test_api_returns_specific_lost_and_found_item_in_database(test_client, correct_signup_data, valid_lost_item_report):
+    access_token = register_and_login_user(test_client, correct_signup_data)
+    item_id = test_client.post(
+        '/items', json=valid_lost_item_report, headers={
+            'Authorization': 'Bearer ' + access_token
+        }
+    ).get_json()['id']
+    response = test_client.get(
+        f'/items/{item_id}', headers={
+            'Authorization': 'Bearer ' + access_token
+        }
+    )
+
+    assert response.status_code == 200
+    assert response.get_json()['id'] == item_id
+
+    clean_database()
+
+
 def test_api_returns_error_given_unsupported_image_file_upload(test_client, correct_signup_data, invalid_upload_file):
     response = test_client.post(
         '/items/images', data={'image': invalid_upload_file}, headers={
