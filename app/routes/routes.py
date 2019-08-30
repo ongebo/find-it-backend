@@ -4,7 +4,8 @@ from .. import app
 from ..utils.validator import SignupValidator, LoginValidator, LostAndFoundItemValidator
 from ..utils.persister import UserPersister, LostAndFoundItemPersister
 from flask_jwt_extended import (
-    create_access_token, create_refresh_token, jwt_required, get_jwt_identity
+    create_access_token, create_refresh_token, jwt_required, get_jwt_identity,
+    jwt_refresh_token_required
 )
 from werkzeug.utils import secure_filename
 from ..models import LostAndFoundItem, User, get_item_as_json, db, user_not_item_owner
@@ -30,6 +31,14 @@ def login_user():
         'access_token': create_access_token(identity=credentials['email']),
         'refresh_token': create_refresh_token(identity=credentials['email']),
     })
+
+
+@app.route('/refresh', methods=['POST'])
+@jwt_refresh_token_required
+def refresh_access_token():
+    return jsonify({
+        'access_token': create_access_token(identity=get_jwt_identity())
+    }), 200
 
 
 @app.route('/items', methods=['POST'])
