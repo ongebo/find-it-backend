@@ -7,6 +7,7 @@ from flask_jwt_extended import (
     create_access_token, create_refresh_token, jwt_required, get_jwt_identity
 )
 from werkzeug.utils import secure_filename
+from ..models import LostAndFoundItem, User
 
 
 @app.route('/users', methods=['POST'])
@@ -42,6 +43,24 @@ def report_lost_and_found_item():
     )
     reported_item = persister.persist()
     return jsonify(reported_item), 201
+
+
+@app.route('/items', methods=['GET'])
+@jwt_required
+def get_lost_and_found_items():
+    response = {'items': []}
+    for item in LostAndFoundItem.query.all():
+        reporter = User.query.filter_by(id=item.reporter_id).first()
+        response['items'].append({
+            'item_name': item.item_name,
+            'description': item.description,
+            'image_url': item.image_url,
+            'report_date': item.report_date,
+            'reported_by': reporter.username
+        })
+    if not response['items']:
+        return jsonify({'error': 'No lost and found items!'}), 404
+    return jsonify(response), 200
 
 
 @app.route('/items/images', methods=['POST'])

@@ -12,12 +12,12 @@ class Persister:
         db.session.commit()
         return self.get_persisted_data_as_json()
 
-    # override this method in a subclass to create a model instance
-    # to be persisted to the database
+    # override this method in a subclass to create model instance
+    # to be persisted to database
     def get_model_instance(self):
         pass
 
-    # override this method in a subclass to retrieve data persisted
+    # override this method in a subclass to retrieve data
     # persisted to database
     def get_persisted_data_as_json(self):
         pass
