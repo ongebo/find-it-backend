@@ -218,6 +218,61 @@ def test_api_updates_item_given_a_valid_update_request(test_client, correct_sign
     clean_database()
 
 
+def test_api_returns_404_when_deleting_non_existent_lost_and_found_item(test_client, correct_signup_data):
+    response = test_client.delete(
+        '/items/0', headers={
+            'Authorization': 'Bearer ' + register_and_login_user(test_client, correct_signup_data)
+        }
+    )
+    assert response.status_code == 404
+    assert response.get_json()['error'] == 'No item with id 0'
+    clean_database()
+
+
+def test_api_returns_403_when_deleting_existent_item_owned_by_other_user(test_client, correct_signup_data, valid_lost_item_report):
+    access_token_1 = register_and_login_user(test_client, correct_signup_data)
+    access_token_2 = register_and_login_user(
+        test_client, {
+            'username': 'Rollo',
+            'phone_number': '+61-870-213021',
+            'email': 'protector@paris.fr',
+            'password': 'Norm4ndy'
+        }
+    )
+    item_id = test_client.post(
+        '/items', json=valid_lost_item_report, headers={
+            'Authorization': 'Bearer ' + access_token_1
+        }
+    ).get_json()['id']
+    response = test_client.delete(
+        f'/items/{item_id}', headers={
+            'Authorization': 'Bearer ' + access_token_2
+        }
+    )
+
+    assert response.status_code == 403
+    assert response.get_json(
+    )['forbidden'] == 'You are not the owner of this item report!'
+    clean_database()
+
+
+def test_api_deletes_item_given_valid_delete_request(test_client, correct_signup_data, valid_lost_item_report):
+    access_token = register_and_login_user(test_client, correct_signup_data)
+    item_id = test_client.post(
+        '/items', json=valid_lost_item_report, headers={
+            'Authorization': 'Bearer ' + access_token
+        }
+    ).get_json()['id']
+    response = test_client.delete(
+        f'/items/{item_id}', headers={
+            'Authorization': 'Bearer ' + access_token
+        }
+    )
+    assert response.status_code == 200
+    assert response.get_json()['message'] == 'Item deleted'
+    clean_database()
+
+
 def test_api_returns_error_given_unsupported_image_file_upload(test_client, correct_signup_data, invalid_upload_file):
     response = test_client.post(
         '/items/images', data={'image': invalid_upload_file}, headers={
