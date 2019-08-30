@@ -152,6 +152,72 @@ def test_api_returns_specific_lost_and_found_item_in_database(test_client, corre
     clean_database()
 
 
+def test_api_returns_errors_given_invalid_item_update_body(test_client, correct_signup_data, invalid_lost_item_report):
+    response = test_client.put(
+        '/items/1', json=invalid_lost_item_report, headers={
+            'Authorization': 'Bearer ' + register_and_login_user(test_client, correct_signup_data)
+        }
+    )
+    assert response.status_code == 400
+    assert response.get_json()['errors']
+    clean_database()
+
+
+def test_api_returns_404_when_updating_non_existent_item(test_client, correct_signup_data, valid_lost_item_report):
+    response = test_client.put(
+        '/items/0', json=valid_lost_item_report, headers={
+            'Authorization': 'Bearer ' + register_and_login_user(test_client, correct_signup_data)
+        }
+    )
+    assert response.status_code == 404
+    assert response.get_json()['error'] == 'No item with id 0'
+    clean_database()
+
+
+def test_api_returns_403_when_updating_item_reported_by_another_user(test_client, correct_signup_data, valid_lost_item_report):
+    access_token_1 = register_and_login_user(test_client, correct_signup_data)
+    access_token_2 = register_and_login_user(
+        test_client, {
+            'username': 'Bjorn Ironside',
+            'phone_number': '+61-859-283021',
+            'email': 'lothbrokson@vikings.kat',
+            'password': 'V1kingKing'
+        }
+    )
+    item_id = test_client.post(
+        '/items', json=valid_lost_item_report, headers={
+            'Authorization': 'Bearer ' + access_token_1
+        }
+    ).get_json()['id']
+    response = test_client.put(
+        f'/items/{item_id}', json=valid_lost_item_report, headers={
+            'Authorization': 'Bearer ' + access_token_2
+        }
+    )
+
+    assert response.status_code == 403
+    assert response.get_json(
+    )['forbidden'] == 'You are not the owner of this item report!'
+    clean_database()
+
+
+def test_api_updates_item_given_a_valid_update_request(test_client, correct_signup_data, valid_lost_item_report):
+    access_token = register_and_login_user(test_client, correct_signup_data)
+    item_id = test_client.post(
+        '/items', json=valid_lost_item_report, headers={
+            'Authorization': 'Bearer ' + access_token
+        }
+    ).get_json()['id']
+    response = test_client.put(
+        f'/items/{item_id}', json=valid_lost_item_report, headers={
+            'Authorization': 'Bearer ' + access_token
+        }
+    )
+    assert response.status_code == 200
+    assert response.get_json()['id'] == item_id
+    clean_database()
+
+
 def test_api_returns_error_given_unsupported_image_file_upload(test_client, correct_signup_data, invalid_upload_file):
     response = test_client.post(
         '/items/images', data={'image': invalid_upload_file}, headers={
