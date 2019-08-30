@@ -126,19 +126,20 @@ class LoginValidator(Validator):
 
 
 class LostAndFoundItemValidator(Validator):
-    def __init__(self, request):
+    def __init__(self, request, updating=False):
         super().__init__(request)
         self.required_fields = {
             'item_name': 'Item name', 'description': 'Description', 'image_url': 'Image url'
         }
         self.request = request
+        self.updating = updating
 
     def validate_required_fields(self):
         if len(self.json_data['item_name']) < 3:
             self.errors['item_name'] = 'Item name should contain atleast 3 characters!'
         if len(self.json_data['description']) < 12:
             self.errors['description'] = 'Item description should contain atleast 12 characters!'
-        if LostAndFoundItem.query.filter_by(**self.json_data).first():
+        if LostAndFoundItem.query.filter_by(**self.json_data).first() and not self.updating:
             self.errors['error'] = 'This item has already been reported!'
 
     def uploaded_image_invalid(self):
