@@ -55,7 +55,7 @@ def valid_lost_item_report():
 
 @pytest.fixture
 def invalid_upload_file():
-    return (io.BytesIO(b'binary-file-content'), 'lost-and-found.mp4')
+    return (io.BytesIO(b'binary-file-content'), 'lost-and-found')
 
 
 @pytest.fixture

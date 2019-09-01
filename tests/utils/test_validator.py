@@ -1,4 +1,4 @@
-from app.utils.validator import SignupValidator, LoginValidator, LostAndFoundItemValidator
+from app.utils.validator import Validator, SignupValidator, LoginValidator, LostAndFoundItemValidator
 from app.models import db, User, LostAndFoundItem
 from .conftest import Request
 from ..test_utils import clean_database
@@ -11,18 +11,24 @@ def register_user_in_database(user):
 
 
 def test_validator_returns_invalid_if_request_not_json():
-    validator = SignupValidator(Request('non-JSON string'))
+    validator = Validator(Request('non-JSON string'))
     assert validator.request_invalid()
     assert validator.errors['error'] == 'Request not specified in JSON format!'
 
 
 def test_validator_returns_invalid_if_redundant_fields_in_request_with_all_required_string_fields(redundant_request):
-    validator = SignupValidator(redundant_request)
+    validator = Validator(redundant_request)
     assert validator.request_invalid()
     assert validator.errors['school'] == '"school" not required!'
 
 
-def test_validator_returns_invalid_given_invalid_required_fields(invalid_signup_data):
+def test_abstract_method_in_base_validator_logs_no_errors(invalid_signup_data):
+    validator = Validator(invalid_signup_data)
+    validator.validate_required_fields()
+    assert not validator.errors
+
+
+def test_signup_validator_returns_invalid_given_invalid_required_fields(invalid_signup_data):
     validator = SignupValidator(invalid_signup_data)
     assert validator.request_invalid()
     assert validator.errors['username'] == (
