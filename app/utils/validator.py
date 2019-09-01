@@ -75,7 +75,7 @@ class SignupValidator(Validator):
             'Specify phone number in this format: +xxx-xxx-xxxxxx'
         )
         self.validate_field(
-            'email', r'[a-zA-Z0-9]+@[a-zA-Z]+\.[a-zA-Z]{2,3}((\.[a-zA-Z]{2,3})+)?$',
+            'email', r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$',
             'Invalid email address!'
         )
         self.validate_password()
