@@ -23,7 +23,7 @@ Follow these instructions to create a local development environment:
 - `pip install --upgrade pip`
 - `pip install -r requirements`
 
-### 4.  setup PostgreSQL:
+### 4.  set up PostgreSQL:
 - Make sure a [PostgresSQL](https://www.postgresql.org/) server is running locally
 - Create two PostgresSQL databases: a main database(e.g `find_it`) and a test database (e.g `find_it_test`)
 
@@ -149,7 +149,7 @@ Sample response:
 }
 ```
 
-### Fetch Specific Lost and Found Item:
+### Update Specific Lost and Found Item:
 `PUT /items/1`
 
 ```javascript
