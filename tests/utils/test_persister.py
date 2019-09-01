@@ -1,6 +1,12 @@
-from app.utils.persister import UserPersister, LostAndFoundItemPersister
+from app.utils.persister import Persister, UserPersister, LostAndFoundItemPersister
 from app.models import User, LostAndFoundItem
 from ..test_utils import clean_database
+
+
+def test_abstract_methods_in_base_persister_class_return_none():
+    base_persister = Persister({})
+    assert not base_persister.get_model_instance()
+    assert not base_persister.get_persisted_data_as_json()
 
 
 def test_persister_saves_user_to_database_and_returns_saved_information():
@@ -40,7 +46,9 @@ def test_persister_saves_lost_and_found_item_and_returns_saved_information():
         'description': 'Found at the cafeteria.',
         'image_url': 'http://somedomain.com/some-image.png'
     }
-    persisted_data = LostAndFoundItemPersister(lost_item, user['email']).persist()
+    persisted_data = LostAndFoundItemPersister(
+        lost_item, user['email']
+    ).persist()
 
     assert persisted_data['item_name'] == lost_item['item_name']
     assert persisted_data['description'] == lost_item['description']
