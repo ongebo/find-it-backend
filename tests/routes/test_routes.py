@@ -42,6 +42,19 @@ def test_api_returns_signup_info_given_correct_signup_data(test_client, correct_
     clean_database()
 
 
+def test_signup_endpoint_cannot_register_same_user_twice(test_client, correct_signup_data):
+    test_client.post('/users', json=correct_signup_data)
+    response = test_client.post('/users', json=correct_signup_data)
+    assert response.status_code == 400
+    assert response.get_json(
+    )['errors']['username'] == f'{correct_signup_data["username"]} already exists!'
+    assert response.get_json(
+    )['errors']['phone_number'] == f'{correct_signup_data["phone_number"]} is already taken by another user!'
+    assert response.get_json(
+    )['errors']['email'] == f'{correct_signup_data["email"]} is already taken by another user!'
+    clean_database()
+
+
 def test_api_returns_error_given_wrong_login_information(test_client, invalid_login_data):
     response = test_client.post('/login', json=invalid_login_data)
     assert response.status_code == 400
