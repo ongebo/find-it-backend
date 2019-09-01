@@ -22,8 +22,8 @@ def test_validator_returns_invalid_if_redundant_fields_in_request_with_all_requi
     assert validator.errors['school'] == '"school" not required!'
 
 
-def test_validator_returns_invalid_given_invalid_required_fields(invalid_fields_request):
-    validator = SignupValidator(invalid_fields_request)
+def test_validator_returns_invalid_given_invalid_required_fields(invalid_signup_data):
+    validator = SignupValidator(invalid_signup_data)
     assert validator.request_invalid()
     assert validator.errors['username'] == (
         'A username can only contain letters. First, middle, and last names are '
@@ -35,6 +35,17 @@ def test_validator_returns_invalid_given_invalid_required_fields(invalid_fields_
         'Password must contain atleast one lowercase letter, one uppercase letter,'
         ' a digit and be 6 to 12 characters long!'
     )
+
+
+def test_signup_validator_returns_invalid_if_user_already_in_database(valid_signup_data):
+    json_data = valid_signup_data.get_json()
+    register_user_in_database(json_data)
+    validator = SignupValidator(valid_signup_data)
+    assert validator.request_invalid()
+    assert validator.errors['username'] == f'{json_data["username"]} already exists!'
+    assert validator.errors['phone_number'] == f'{json_data["phone_number"]} is already taken by another user!'
+    assert validator.errors['email'] == f'{json_data["email"]} is already taken by another user!'
+    clean_database()
 
 
 def test_login_validator_returns_invalid_given_incorrect_email():

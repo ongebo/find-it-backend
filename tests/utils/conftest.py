@@ -36,12 +36,22 @@ def redundant_request():
 
 
 @pytest.fixture
-def invalid_fields_request():
+def invalid_signup_data():
     return Request({
         'username': '12',
         'phone_number': '076',
         'email': 'John Doe',
         'password': 'JoDoe'
+    })
+
+
+@pytest.fixture
+def valid_signup_data():
+    return Request({
+        'username': 'Tony Stark',
+        'phone_number': '+1-456-209194',
+        'email': 'tony.stark@avengers.marvel',
+        'password': 'IronM4n'
     })
 
 
