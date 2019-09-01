@@ -22,6 +22,10 @@ def remove_test_data(username, filename):
         username,
         filename
     ))
+    os.rmdir(os.path.join(
+        app.config['UPLOAD_FOLDER'],
+        username
+    ))
 
 
 def test_api_returns_error_given_incorrect_signup_data(test_client, invalid_signup_data):
