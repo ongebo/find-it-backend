@@ -21,7 +21,7 @@ Follow these instructions to create a local development environment:
 
 ### 3.  ensure pip is up-to-date and install all dependencies:
 - `pip install --upgrade pip`
-- `pip install -r requirements`
+- `pip install -r requirements.txt`
 
 ### 4.  set up PostgreSQL:
 - Make sure a [PostgresSQL](https://www.postgresql.org/) server is running locally
